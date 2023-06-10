@@ -1,5 +1,11 @@
+import { AppProviders } from "./providers";
+
 function App() {
-  return <></>;
+  return (
+    <AppProviders>
+      <main></main>
+    </AppProviders>
+  );
 }
 
 export default App;
