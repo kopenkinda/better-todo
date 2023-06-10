@@ -1,11 +1,7 @@
 import { AppProviders } from "./providers";
 
 function App() {
-  return (
-    <AppProviders>
-      <main></main>
-    </AppProviders>
-  );
+  return <AppProviders></AppProviders>;
 }
 
 export default App;
