@@ -4,14 +4,5 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    VitePWA({
-      registerType: "prompt",
-      strategies: "injectManifest",
-      devOptions: {
-        enabled: false,
-      },
-    }),
-  ],
+  plugins: [react(), VitePWA()],
 });

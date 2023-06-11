@@ -44,7 +44,7 @@ const keyFromDate = (date: Date) => `app-todos-${formatter.format(date)}`;
 // const dateFromKey = (key: string) => new Date(key.slice("app-todos-".length));
 
 const reducer: Reducer<Todo[], TodoAction> = (state, action) => {
-  const result = state.length !== 0 ? structuredClone(state) : [];
+  const result: Todo[] = state.length !== 0 ? structuredClone(state) : [];
   switch (action.type) {
     case "ADD": {
       result.push({
@@ -103,7 +103,7 @@ const reducer: Reducer<Todo[], TodoAction> = (state, action) => {
             continue;
           }
           if (!action.tags.map((t) => t.id).includes(todo.data.tag ?? "")) {
-            todo.data.tag = undefined;
+            todo.data.tag = "_NONE";
           }
           result.push(todo.data);
         }
