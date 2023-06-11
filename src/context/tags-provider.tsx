@@ -1,12 +1,13 @@
 import { useLocalStorage } from "@mantine/hooks";
 import { createContext } from "react";
 import { type Tag } from "../schemas/tags-schema";
+import { createId } from "@paralleldrive/cuid2";
 
 type TagsContextType = {
   tags: Tag[];
-  add: (tag: Tag) => void;
-  remove: (id: Tag["name"]) => void;
-  edit: (id: Tag["name"], data: Partial<Tag>) => void;
+  add: (tag: Omit<Tag, "id">) => void;
+  remove: (id: Tag["id"]) => void;
+  edit: (id: Tag["id"], data: Omit<Partial<Tag>, "id">) => void;
 };
 
 export const TagsContext = createContext<null | TagsContextType>(null);
@@ -19,26 +20,30 @@ export const TagsProvider = ({ children }: { children: React.ReactNode }) => {
   const value: TagsContextType = {
     tags,
     add(tag) {
-      setTags((current) => [...current, tag]);
+      if (tags.find((t) => t.name === tag.name)) {
+        return;
+      }
+      setTags((current) => [...current, { ...tag, id: createId() }]);
     },
-    remove(name) {
-      setTags((current) => current.filter((tag) => tag.name !== name));
+    remove(id) {
+      setTags((current) => current.filter((tag) => tag.id !== id));
     },
     edit(id, data) {
       setTags((current) => {
-        const idx = current.findIndex((tag) => tag.name === id);
+        const idx = current.findIndex((tag) => tag.id === id);
         const tag = current[idx];
         if (idx === -1 || !tag) {
           throw new Error(`Tag with id ${id} not found`);
         }
-        return [
-          ...current.slice(0, idx),
-          {
+        return current.map((tag) => {
+          if (tag.id !== id) {
+            return tag;
+          }
+          return {
             ...tag,
             ...data,
-          },
-          ...current.slice(idx + 1),
-        ];
+          };
+        });
       });
     },
   };

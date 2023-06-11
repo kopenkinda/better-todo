@@ -11,6 +11,8 @@ import {
 import { createId } from "@paralleldrive/cuid2";
 
 import { todoSchema, type Todo } from "../schemas/todo-schema";
+import { useTags } from "../hooks/use-tags";
+import { type Tag } from "../schemas/tags-schema";
 
 export type TodoAction =
   | { type: "ADD"; date: Date; data: Omit<Todo, "id"> }
@@ -22,7 +24,7 @@ export type TodoAction =
     }
   | { type: "TOGGLE"; date: Date; id: Todo["id"] }
   | { type: "REMOVE"; date: Date; id: Todo["id"] }
-  | { type: "LOAD"; date: Date };
+  | { type: "LOAD"; date: Date; tags: Tag[] };
 
 export type TodoContext = {
   forDate: Date;
@@ -100,6 +102,9 @@ const reducer: Reducer<Todo[], TodoAction> = (state, action) => {
           if (!todo.success) {
             continue;
           }
+          if (!action.tags.map((t) => t.id).includes(todo.data.tag ?? "")) {
+            todo.data.tag = undefined;
+          }
           result.push(todo.data);
         }
       } catch (err) {
@@ -130,6 +135,7 @@ const formatter = new Intl.DateTimeFormat("ru", {
 export const TodoProvider = ({ children }: { children: ReactNode }) => {
   const [forDate, setDate] = useState(new Date());
   const [todos, dispatch] = useReducer(reducer, []);
+  const { tags } = useTags();
   const actions = useMemo<TodoContext["actions"]>(
     () => ({
       add(data) {
@@ -152,8 +158,8 @@ export const TodoProvider = ({ children }: { children: ReactNode }) => {
     [forDate]
   );
   useEffect(() => {
-    dispatch({ type: "LOAD", date: forDate });
-  }, [forDate]);
+    dispatch({ type: "LOAD", date: forDate, tags });
+  }, [forDate, tags]);
   return (
     <TodoContext.Provider value={{ todos, actions, forDate, setDate }}>
       {children}

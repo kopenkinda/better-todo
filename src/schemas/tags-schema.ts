@@ -13,7 +13,8 @@ export const tagColors = [
   "gray",
 ] as const;
 
-const tagSchema = z.object({
+export const tagSchema = z.object({
+  id: z.string(),
   name: z.string().min(2).max(24),
   color: z.enum(tagColors),
 });
