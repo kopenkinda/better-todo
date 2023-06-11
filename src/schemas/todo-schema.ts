@@ -5,7 +5,7 @@ export const todoSchema = z.object({
   title: z.string(),
   description: z.string(),
   isCompleted: z.boolean().default(false),
-  tags: z.array(z.string()),
+  tag: z.string().optional(),
 });
 
 export const newTodoSchema = todoSchema.omit({ id: true });

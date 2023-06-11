@@ -13,15 +13,16 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  Select,
   Stack,
   Switch,
   Textarea,
 } from "@chakra-ui/react";
-import { useTodos } from "../hooks/use-todos";
-import { type Todo, newTodoSchema } from "../schemas/todo-schema";
-import { IconDeviceFloppy, IconPlus } from "@tabler/icons-react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { IconDeviceFloppy, IconPlus, IconTrash } from "@tabler/icons-react";
+import { useForm } from "react-hook-form";
+import { useTodos } from "../hooks/use-todos";
+import { newTodoSchema, type Todo } from "../schemas/todo-schema";
 
 export type TodoModalProps = (
   | { mode: "add" }
@@ -44,24 +45,24 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
         ? {
             title: mode.values.title,
             description: mode.values.description,
-            tags: mode.values.tags,
+            tag: mode.values.tag,
             isCompleted: mode.values.isCompleted,
           }
-        : { title: "", description: "", tags: [], isCompleted: false },
+        : { title: "", description: "", tag: undefined, isCompleted: false },
   });
   const onSubmit = (data: Todo) => {
     if (mode.mode === "edit") {
       actions.edit(mode.values.id, {
         title: data.title,
         description: data.description,
-        tags: data.tags,
+        tag: data.tag,
         isCompleted: data.isCompleted,
       });
     } else {
       actions.add({
         title: data.title,
         description: data.description,
-        tags: data.tags,
+        tag: data.tag,
       });
     }
     onClose();
@@ -70,7 +71,7 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
     <Modal isOpen={open} onClose={onClose} size="full">
       <ModalOverlay />
       <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-        <ModalHeader>Add todo</ModalHeader>
+        <ModalHeader>{mode.mode === "add" ? "Add" : "Edit"} todo</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <Stack spacing="4">
@@ -101,6 +102,13 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
                 </FormErrorMessage>
               )}
             </FormControl>
+            <FormControl>
+              <FormLabel>Tag</FormLabel>
+              <Select {...register("tag")} />
+              <FormHelperText>
+                Add tags to help you find this task later
+              </FormHelperText>
+            </FormControl>
             {mode.mode === "edit" && (
               <FormControl>
                 <Box display="flex" alignItems="center" gap=".5rem">
@@ -115,6 +123,19 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
           </Stack>
         </ModalBody>
         <ModalFooter>
+          {mode.mode === "edit" && (
+            <Button
+              colorScheme="red"
+              mr="2"
+              onClick={() => {
+                actions.remove(mode.values.id);
+                onClose();
+              }}
+              rightIcon={<IconTrash size={16} />}
+            >
+              Delete
+            </Button>
+          )}
           <Button
             colorScheme="green"
             type="submit"
