@@ -1,3 +1,4 @@
+import { Box } from "@chakra-ui/react";
 import { TodoList } from "./components/todo-list";
 import { AppNavbar } from "./layout/navbar";
 import { AppProviders } from "./providers";
@@ -6,7 +7,9 @@ function App() {
   return (
     <AppProviders>
       <AppNavbar />
-      <TodoList />
+      <Box p="2">
+        <TodoList />
+      </Box>
     </AppProviders>
   );
 }
