@@ -1,6 +1,7 @@
 import { Box } from "@chakra-ui/react";
 import { AddTodo } from "../components/add-todo";
 import { ThemeToggle } from "../components/theme-toggle";
+import { AppDateSelector } from "../components/date-selector";
 
 export const AppNavbar = () => {
   return (
@@ -18,7 +19,7 @@ export const AppNavbar = () => {
       zIndex="1"
     >
       <ThemeToggle />
-      <h1>Calendar Here</h1>
+      <AppDateSelector />
       <AddTodo />
     </Box>
   );

@@ -18,6 +18,8 @@
     "@paralleldrive/cuid2": "^2.2.1",
     "@tabler/icons-react": "^2.22.0",
     "@total-typescript/ts-reset": "^0.4.2",
+    "@uselessdev/datepicker": "^2.7.0",
+    "date-fns": "^2.30.0",
     "framer-motion": "^10.12.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
