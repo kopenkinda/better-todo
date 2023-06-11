@@ -21,6 +21,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconDeviceFloppy, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
+import { useTags } from "../hooks/use-tags";
 import { useTodos } from "../hooks/use-todos";
 import { newTodoSchema, type Todo } from "../schemas/todo-schema";
 
@@ -34,6 +35,7 @@ export type TodoModalProps = (
 
 export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
   const { actions } = useTodos();
+  const { tags } = useTags();
   const {
     register,
     handleSubmit,
@@ -48,7 +50,7 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
             tag: mode.values.tag,
             isCompleted: mode.values.isCompleted,
           }
-        : { title: "", description: "", tag: undefined, isCompleted: false },
+        : { title: "", description: "", tag: "_NONE", isCompleted: false },
   });
   const onSubmit = (data: Todo) => {
     if (mode.mode === "edit") {
@@ -104,7 +106,16 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
             </FormControl>
             <FormControl>
               <FormLabel>Tag</FormLabel>
-              <Select {...register("tag")} />
+              <Select {...register("tag")}>
+                <option value="_NONE">
+                  NONE (This task will not be tagged)
+                </option>
+                {tags.map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.name.toLocaleUpperCase()}
+                  </option>
+                ))}
+              </Select>
               <FormHelperText>
                 Add tags to help you find this task later
               </FormHelperText>

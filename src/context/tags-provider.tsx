@@ -20,10 +20,16 @@ export const TagsProvider = ({ children }: { children: React.ReactNode }) => {
   const value: TagsContextType = {
     tags,
     add(tag) {
-      if (tags.find((t) => t.name === tag.name)) {
+      if (tag.name.toUpperCase() === "NONE") {
         return;
       }
-      setTags((current) => [...current, { ...tag, id: createId() }]);
+      if (tags.find((t) => t.name === tag.name.toUpperCase())) {
+        return;
+      }
+      setTags((current) => [
+        ...current,
+        { id: createId(), color: tag.color, name: tag.name.toUpperCase() },
+      ]);
     },
     remove(id) {
       setTags((current) => current.filter((tag) => tag.id !== id));
@@ -40,8 +46,9 @@ export const TagsProvider = ({ children }: { children: React.ReactNode }) => {
             return tag;
           }
           return {
-            ...tag,
-            ...data,
+            name: data.name ? data.name.toUpperCase() : tag.name,
+            color: data.color ? data.color : tag.color,
+            id: tag.id,
           };
         });
       });
