@@ -9,7 +9,7 @@ import {
   ModalOverlay,
 } from "@chakra-ui/react";
 import { useTodos } from "../hooks/use-todos";
-import { type Todo } from "../context/todo-provider";
+import { type Todo } from "../schemas/todo-schema";
 import { IconPlus } from "@tabler/icons-react";
 
 export type TodoModalProps = (

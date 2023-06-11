@@ -1,23 +1,16 @@
 import {
+  createContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
   type Dispatch,
   type ReactNode,
   type Reducer,
-  createContext,
-  useReducer,
-  useState,
-  useMemo,
-  useEffect,
 } from "react";
-
 import { createId } from "@paralleldrive/cuid2";
 
-export type Todo = {
-  id: string;
-  title: string;
-  description: string;
-  isCompleted: boolean;
-  tags: string[];
-};
+import { todoSchema, type Todo } from "../schemas/todo-schema";
 
 export type TodoAction =
   | { type: "ADD"; date: Date; data: Omit<Todo, "id"> }
@@ -102,39 +95,12 @@ const reducer: Reducer<Todo[], TodoAction> = (state, action) => {
         if (!Array.isArray(todos)) {
           throw new Error(`Invalid data: ${data}`);
         }
-        for (const todo of todos) {
-          if (typeof todo !== "object" || todo === null) {
-            throw new Error(`Invalid data: ${data}`);
+        for (const rawTodo of todos) {
+          const todo = todoSchema.safeParse(rawTodo);
+          if (!todo.success) {
+            continue;
           }
-          if (
-            !("id" in todo) ||
-            !("title" in todo) ||
-            !("description" in todo) ||
-            !("isCompleted" in todo) ||
-            !("tags" in todo)
-          ) {
-            throw new Error(`Invalid data: ${data}`);
-          }
-          const { description, id, isCompleted, tags, title } = todo;
-          if (
-            typeof id !== "string" ||
-            typeof title !== "string" ||
-            typeof description !== "string" ||
-            typeof isCompleted !== "boolean" ||
-            !Array.isArray(tags)
-          ) {
-            throw new Error(`Invalid data: ${data}`);
-          }
-          const correctTags = tags.filter(
-            (tag) => typeof tag === "string"
-          ) as string[];
-          result.push({
-            isCompleted,
-            id,
-            title,
-            description,
-            tags: correctTags,
-          });
+          result.push(todo.data);
         }
       } catch (err) {
         localStorage.removeItem(key);
