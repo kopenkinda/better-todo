@@ -1,19 +1,24 @@
 import {
+  Badge,
   ButtonGroup,
   Card,
   CardBody,
+  CardFooter,
   IconButton,
   Text,
 } from "@chakra-ui/react";
 import { IconCheckbox, IconEdit, IconSquare } from "@tabler/icons-react";
+import { useState } from "react";
+import { useTags } from "../hooks/use-tags";
 import { useTodos } from "../hooks/use-todos";
 import { type Todo } from "../schemas/todo-schema";
 import { TodoModal } from "./todo-modal";
-import { useState } from "react";
 
 export const TodoItem = ({ todo }: { todo: Todo }) => {
   const { actions } = useTodos();
+  const { tags } = useTags();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const tag = tags.find((t) => t.id === todo.tag);
   return (
     <>
       <Card opacity={todo.isCompleted ? 0.4 : 1}>
@@ -45,6 +50,11 @@ export const TodoItem = ({ todo }: { todo: Todo }) => {
             </IconButton>
           </ButtonGroup>
         </CardBody>
+        {tag != null && (
+          <CardFooter m={0} pt={0}>
+            <Badge colorScheme={tag.color}>{tag.name}</Badge>
+          </CardFooter>
+        )}
       </Card>
       {isModalOpen && (
         <TodoModal
