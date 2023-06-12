@@ -40,6 +40,7 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<Todo>({
     resolver: zodResolver(newTodoSchema),
     defaultValues:
@@ -67,6 +68,10 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
         tag: data.tag,
       });
     }
+    setValue("title", "");
+    setValue("description", "");
+    setValue("tag", "_NONE");
+    setValue("isCompleted", false);
     onClose();
   };
   return (
