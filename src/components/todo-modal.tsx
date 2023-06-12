@@ -24,18 +24,26 @@ import { useForm } from "react-hook-form";
 import { useTags } from "../hooks/use-tags";
 import { useTodos } from "../hooks/use-todos";
 import { newTodoSchema, type Todo } from "../schemas/todo-schema";
+import { useState } from "react";
 
 export type TodoModalProps = (
   | { mode: "add" }
   | { mode: "edit"; values: Todo }
 ) & {
+  global?: boolean;
   open: boolean;
   onClose: () => void;
 };
 
-export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
+export const TodoModal = ({
+  onClose,
+  open,
+  global: _global = false,
+  ...mode
+}: TodoModalProps) => {
   const { actions } = useTodos();
   const { tags } = useTags();
+  const [global, setGlobal] = useState(_global);
   const {
     register,
     handleSubmit,
@@ -55,23 +63,31 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
   });
   const onSubmit = (data: Todo) => {
     if (mode.mode === "edit") {
-      actions.edit(mode.values.id, {
-        title: data.title,
-        description: data.description,
-        tag: data.tag,
-        isCompleted: data.isCompleted,
-      });
+      actions.edit(
+        mode.values.id,
+        {
+          title: data.title,
+          description: data.description,
+          tag: data.tag,
+          isCompleted: data.isCompleted,
+        },
+        global
+      );
     } else {
-      actions.add({
-        title: data.title,
-        description: data.description,
-        tag: data.tag,
-      });
+      actions.add(
+        {
+          title: data.title,
+          description: data.description,
+          tag: data.tag,
+        },
+        global
+      );
     }
     setValue("title", "");
     setValue("description", "");
     setValue("tag", "_NONE");
     setValue("isCompleted", false);
+    setGlobal(false);
     onClose();
   };
   return (
@@ -136,6 +152,21 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
                 </FormHelperText>
               </FormControl>
             )}
+            {mode.mode === "add" && (
+              <FormControl>
+                <Box display="flex" alignItems="center" gap=".5rem">
+                  <FormLabel margin="0">Global</FormLabel>
+                  <Switch
+                    value={global ? "true" : "false"}
+                    onChange={(e) => setGlobal(e.target.checked)}
+                  />
+                </Box>
+                <FormHelperText>
+                  Global tasks will be visible every day until completed or
+                  deleted
+                </FormHelperText>
+              </FormControl>
+            )}
           </Stack>
         </ModalBody>
         <ModalFooter>
@@ -144,7 +175,7 @@ export const TodoModal = ({ onClose, open, ...mode }: TodoModalProps) => {
               colorScheme="red"
               mr="2"
               onClick={() => {
-                actions.remove(mode.values.id);
+                actions.remove(mode.values.id, global);
                 onClose();
               }}
               rightIcon={<IconTrash size={16} />}

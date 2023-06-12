@@ -14,7 +14,13 @@ import { useTodos } from "../hooks/use-todos";
 import { type Todo } from "../schemas/todo-schema";
 import { TodoModal } from "./todo-modal";
 
-export const TodoItem = ({ todo }: { todo: Todo }) => {
+export const TodoItem = ({
+  todo,
+  global = false,
+}: {
+  todo: Todo;
+  global: boolean;
+}) => {
   const { actions } = useTodos();
   const { tags } = useTags();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,7 +39,7 @@ export const TodoItem = ({ todo }: { todo: Todo }) => {
             <IconButton
               aria-label={`Mark the "${todo.title}" todo as completed`}
               size="sm"
-              onClick={() => actions.toggle(todo.id)}
+              onClick={() => actions.toggle(todo.id, global)}
             >
               {todo.isCompleted ? (
                 <IconCheckbox size={16} />
@@ -62,6 +68,7 @@ export const TodoItem = ({ todo }: { todo: Todo }) => {
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           values={todo}
+          global={global}
         />
       )}
     </>

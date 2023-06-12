@@ -6,6 +6,8 @@ export const todoSchema = z.object({
   description: z.string(),
   isCompleted: z.boolean().default(false),
   tag: z.string(),
+  createdAt: z.date().optional(),
+  finishedAt: z.date().optional(),
 });
 
 export const newTodoSchema = todoSchema.omit({ id: true });

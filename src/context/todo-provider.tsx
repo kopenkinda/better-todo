@@ -13,6 +13,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { todoSchema, type Todo } from "../schemas/todo-schema";
 import { useTags } from "../hooks/use-tags";
 import { type Tag } from "../schemas/tags-schema";
+import { useLocalStorage } from "@mantine/hooks";
 
 export type TodoAction =
   | { type: "ADD"; date: Date; data: Omit<Todo, "id"> }
@@ -30,11 +31,16 @@ export type TodoContext = {
   forDate: Date;
   setDate: Dispatch<Date>;
   todos: Todo[];
+  globalTodos: Todo[];
   actions: {
-    add: (data: Omit<Todo, "id" | "isCompleted">) => void;
-    edit: (id: Todo["id"], data: Partial<Omit<Todo, "id">>) => void;
-    toggle: (id: Todo["id"]) => void;
-    remove: (id: Todo["id"]) => void;
+    add: (data: Omit<Todo, "id" | "isCompleted">, global?: boolean) => void;
+    edit: (
+      id: Todo["id"],
+      data: Partial<Omit<Todo, "id">>,
+      global?: boolean
+    ) => void;
+    toggle: (id: Todo["id"], global?: boolean) => void;
+    remove: (id: Todo["id"], global?: boolean) => void;
   };
 };
 
@@ -135,33 +141,113 @@ const formatter = new Intl.DateTimeFormat("ru", {
 export const TodoProvider = ({ children }: { children: ReactNode }) => {
   const [forDate, setDate] = useState(new Date());
   const [todos, dispatch] = useReducer(reducer, []);
+  const [globalTodos, setGlobalTodos] = useLocalStorage<Todo[]>({
+    key: "app-global-todos",
+    defaultValue: [],
+  });
   const { tags } = useTags();
   const actions = useMemo<TodoContext["actions"]>(
     () => ({
-      add(data) {
-        dispatch({
-          type: "ADD",
-          date: forDate,
-          data: { ...data, isCompleted: false },
-        });
+      add(data, global = false) {
+        if (global) {
+          setGlobalTodos((prev) => [
+            ...prev,
+            {
+              id: createId(),
+              ...data,
+              isCompleted: false,
+              createdAt: new Date(),
+            },
+          ]);
+          return;
+        } else {
+          dispatch({
+            type: "ADD",
+            date: forDate,
+            data: { ...data, isCompleted: false },
+          });
+        }
       },
-      edit(id, data) {
-        dispatch({ type: "EDIT", date: forDate, data, id });
+      edit(id, data, global = false) {
+        if (global) {
+          setGlobalTodos((prev) => {
+            const idx = prev.findIndex((todo) => todo.id === id);
+            if (idx === -1) {
+              throw new Error(`Todo with id ${id} not found`);
+            }
+            const todo = prev[idx];
+            const newTodo = {
+              ...todo,
+              ...data,
+            };
+            newTodo.finishedAt = newTodo.isCompleted ? new Date() : undefined;
+            return [...prev.slice(0, idx), newTodo, ...prev.slice(idx + 1)];
+          });
+        } else {
+          dispatch({ type: "EDIT", date: forDate, data, id });
+        }
       },
-      toggle(id) {
-        dispatch({ type: "TOGGLE", date: forDate, id });
+      toggle(id, global = false) {
+        if (global) {
+          setGlobalTodos((prev) => {
+            const idx = prev.findIndex((todo) => todo.id === id);
+            if (idx === -1) {
+              throw new Error(`Todo with id ${id} not found`);
+            }
+            const todo = prev[idx];
+            return [
+              ...prev.slice(0, idx),
+              {
+                ...todo,
+                isCompleted: !todo.isCompleted,
+                finishedAt: !todo.isCompleted ? new Date() : undefined,
+              },
+              ...prev.slice(idx + 1),
+            ];
+          });
+          return;
+        } else {
+          dispatch({ type: "TOGGLE", date: forDate, id });
+        }
       },
-      remove(id) {
-        dispatch({ type: "REMOVE", date: forDate, id });
+      remove(id, global = false) {
+        if (global) {
+          setGlobalTodos((prev) => prev.filter((todo) => todo.id !== id));
+        } else {
+          dispatch({ type: "REMOVE", date: forDate, id });
+        }
       },
     }),
-    [forDate]
+    [forDate, setGlobalTodos]
   );
   useEffect(() => {
     dispatch({ type: "LOAD", date: forDate, tags });
   }, [forDate, tags]);
+  const filteredGlobalTodos = useMemo(() => {
+    return globalTodos.filter((todo) => {
+      if (!todo.finishedAt || !todo.createdAt) {
+        return true;
+      }
+      const finishedAt = new Date(todo.finishedAt);
+      const createdAt = new Date(todo.createdAt);
+      finishedAt.setHours(23, 59, 59, 999);
+      createdAt.setHours(0, 0, 0, 0);
+      return (
+        forDate.getTime() >= createdAt.getTime() &&
+        forDate.getTime() <= finishedAt.getTime()
+      );
+    });
+  }, [globalTodos, forDate]);
   return (
-    <TodoContext.Provider value={{ todos, actions, forDate, setDate }}>
+    <TodoContext.Provider
+      value={{
+        todos,
+        actions,
+        globalTodos: filteredGlobalTodos,
+        forDate,
+        setDate,
+      }}
+    >
       {children}
     </TodoContext.Provider>
   );
