@@ -7,6 +7,7 @@ import {
   type Dispatch,
   type ReactNode,
   type Reducer,
+  SetStateAction,
 } from "react";
 import { createId } from "@paralleldrive/cuid2";
 
@@ -29,7 +30,7 @@ export type TodoAction =
 
 export type TodoContext = {
   forDate: Date;
-  setDate: Dispatch<Date>;
+  setDate: Dispatch<SetStateAction<Date>>;
   todos: Todo[];
   globalTodos: Todo[];
   actions: {
